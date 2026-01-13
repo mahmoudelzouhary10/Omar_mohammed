@@ -31,10 +31,32 @@ let obstacle = {
 
 let gravity = 0.6;
 let speed = 6;
-let gameOver = false;
+let gameStarted = false;
+let countingDown = false;
+let countdown = 3;
+
+// بدء العدّاد
+function startCountdown() {
+  if (countingDown || gameStarted) return;
+  countingDown = true;
+
+  const timer = setInterval(() => {
+    countdown--;
+    if (countdown === 0) {
+      clearInterval(timer);
+      gameStarted = true;
+      countingDown = false;
+    }
+  }, 1000);
+}
 
 // القفز
 function jump() {
+  if (!gameStarted) {
+    startCountdown(); // أول دوسة تشغّل العدّاد
+    return;
+  }
+
   if (!player.jumping) {
     player.dy = -14;
     player.jumping = true;
@@ -50,15 +72,33 @@ document.addEventListener("keydown", e => {
 canvas.addEventListener("touchstart", jump);
 
 function update() {
-  if (gameOver) return;
-
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // الأرض
   ctx.fillStyle = "#2ecc71";
   ctx.fillRect(0, ground + player.h - 20, canvas.width, 50);
 
-  // حركة اللاعب
+  // رسم اللاعب ثابت
+  ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+
+  // قبل البداية
+  if (!gameStarted) {
+    ctx.fillStyle = "white";
+    ctx.textAlign = "center";
+
+    if (!countingDown) {
+      ctx.font = "30px Arial";
+      ctx.fillText("اضغط للبدء", canvas.width / 2, canvas.height / 2);
+    } else {
+      ctx.font = "60px Arial";
+      ctx.fillText(countdown, canvas.width / 2, canvas.height / 2);
+    }
+
+    requestAnimationFrame(update);
+    return;
+  }
+
+  // فيزياء اللاعب
   player.dy += gravity;
   player.y += player.dy;
 
@@ -87,7 +127,6 @@ function update() {
     player.y < obstacle.y + obstacle.h &&
     player.y + player.h > obstacle.y
   ) {
-    gameOver = true;
     alert("Game Over ⚽");
     location.reload();
   }
