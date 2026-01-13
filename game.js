@@ -32,15 +32,31 @@ let obstacle = {
 /* ====== إعدادات ====== */
 let gravity = 0.6;
 let speed = 6;
+let jumpPower = -18; // ⬅️ جامب أعلى
 
 /* ====== حالة اللعبة ====== */
 let gameStarted = false;
 let countingDown = false;
 let countdown = 3;
+let gameOver = false;
 
 /* ====== الاسكور ====== */
 let score = 0;
 let passedObstacle = false;
+
+/* ====== زرار ريستارت ====== */
+const restartBtn = document.createElement("button");
+restartBtn.innerText = "Restart";
+restartBtn.style.position = "absolute";
+restartBtn.style.top = "50%";
+restartBtn.style.left = "50%";
+restartBtn.style.transform = "translate(-50%, -50%)";
+restartBtn.style.padding = "15px 30px";
+restartBtn.style.fontSize = "20px";
+restartBtn.style.display = "none";
+document.body.appendChild(restartBtn);
+
+restartBtn.onclick = () => location.reload();
 
 /* ====== بدء العدّاد ====== */
 function startCountdown() {
@@ -61,13 +77,15 @@ function startCountdown() {
 
 /* ====== القفز ====== */
 function jump() {
+  if (gameOver) return;
+
   if (!gameStarted) {
     startCountdown();
     return;
   }
 
   if (!player.jumping) {
-    player.dy = -14;
+    player.dy = jumpPower;
     player.jumping = true;
   }
 }
@@ -128,6 +146,9 @@ function update() {
   if (obstacle.x + obstacle.w < player.x && !passedObstacle) {
     score += 10;
     passedObstacle = true;
+
+    // ⬆️ زيادة السرعة مع الاسكور
+    speed = 6 + score * 0.05;
   }
 
   if (obstacle.x < -obstacle.w) {
@@ -137,18 +158,34 @@ function update() {
 
   ctx.drawImage(obstacleImg, obstacle.x, obstacle.y, obstacle.w, obstacle.h);
 
+  /* Hitbox */
+  const playerHitbox = {
+    x: player.x + 25,
+    y: player.y + 20,
+    w: player.w - 50,
+    h: player.h - 30
+  };
+
+  const obstacleHitbox = {
+    x: obstacle.x + 10,
+    y: obstacle.y + 10,
+    w: obstacle.w - 20,
+    h: obstacle.h - 20
+  };
+
   /* تصادم */
   if (
-    player.x < obstacle.x + obstacle.w &&
-    player.x + player.w > obstacle.x &&
-    player.y < obstacle.y + obstacle.h &&
-    player.y + player.h > obstacle.y
+    playerHitbox.x < obstacleHitbox.x + obstacleHitbox.w &&
+    playerHitbox.x + playerHitbox.w > obstacleHitbox.x &&
+    playerHitbox.y < obstacleHitbox.y + obstacleHitbox.h &&
+    playerHitbox.y + playerHitbox.h > obstacleHitbox.y
   ) {
+    gameOver = true;
+    restartBtn.style.display = "block";
     alert("كسم الضحك 😂");
-    location.reload();
   }
 
-  requestAnimationFrame(update);
+  if (!gameOver) requestAnimationFrame(update);
 }
 
 /* ====== تشغيل ====== */
