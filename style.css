@@ -1,0 +1,11 @@
+body {
+  text-align: center;
+  background: #111;
+  color: white;
+  font-family: Arial;
+}
+canvas {
+  background: linear-gradient(#4facfe, #00f2fe);
+  border: 3px solid #fff;
+  margin-top: 20px;
+}
